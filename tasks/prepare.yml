@@ -4,6 +4,10 @@
     name: python3-lxml
     state: present
 
+- name: Install java runtime environment
+  ansible.builtin.package:
+    name: default-jre
+
 - name: Create NiFi group
   ansible.builtin.group:
     name: "{{ nifi_group }}"
