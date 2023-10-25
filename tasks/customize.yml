@@ -54,7 +54,7 @@
       notify: Restart NiFi
 
 - name: Update authorizers.xml
-  when: authorizers_identifiers | length
+  when: (authorizers_identifiers | length) > 0
   block:
     - name: Uncomment block in authorizers.xml
       ansible.builtin.replace:
