@@ -13,7 +13,14 @@
     url: "{{ download_mirror_uri }}/nifi/{{ nifi_version }}/nifi-{{ nifi_version }}-bin.zip.sha256"
     return_content: true
   register: sha256_sum
-  when: not tar_file.stat.exists
+  tags: [ download ]
+
+- name: Check NiFi binary hash
+  stat:
+    path: "{{ nifi_config_dirs.binaries }}/nifi-{{ nifi_version }}-bin.zip"
+    checksum_algorithm: sha256
+  register: hash_check
+  when: tar_file.stat.exists
   tags: [ download ]
 
 - name: Download NiFi binary
@@ -22,7 +29,7 @@
     dest: "{{ nifi_config_dirs.binaries }}/nifi-{{ nifi_version }}-bin.zip"
     mode: "0644"
     checksum: "sha256:{{ sha256_sum.content }}"
-  when: not tar_file.stat.exists
+  when: not tar_file.stat.exists or (hash_check.stat.checksum != sha256_sum.content | trim)
   tags: [ download ]
 
 - name: Unpack NiFi binary
@@ -43,7 +50,7 @@
 
 - name: Create NiFi symlink
   ansible.builtin.file:
-    src: "nifi-{{ nifi_version }}"
+    src: "{{ nifi_config_dirs.install }}/nifi-{{ nifi_version }}"
     path: "{{ nifi_config_dirs.home }}"
     state: "link"
     owner: "{{ nifi_user }}"

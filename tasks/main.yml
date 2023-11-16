@@ -5,6 +5,7 @@
 
 - name: Install NiFi
   ansible.builtin.import_tasks: install.yml
+  tags: [ install ]
 
 - name: Customize NiFi
   ansible.builtin.import_tasks: customize.yml
@@ -12,3 +13,5 @@
 
 - name: Add NiFi as system service
   ansible.builtin.import_tasks: systemd.yml
+  tags: [ install ]
+
