@@ -7,6 +7,10 @@
   ansible.builtin.import_tasks: install.yml
   tags: [ install ]
 
+- name: Init secrets
+  ansible.builtin.import_tasks: secrets.yml
+  tags: [ secrets]
+
 - name: Customize NiFi
   ansible.builtin.import_tasks: customize.yml
   tags: [ config ]
