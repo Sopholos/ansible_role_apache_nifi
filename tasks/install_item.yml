@@ -1,0 +1,26 @@
+---
+- name: Unpack NiFi binary
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "{{ item.zip_path }}"
+    dest: "{{ item.dest_unarchive }}"
+    owner: "{{ nifi_user }}"
+    group: "{{ nifi_group }}"
+    creates: "{{ item.dest_path }}"
+
+- name: Fix permissions
+  ansible.builtin.file:
+    path: "{{ item.dest_path }}"
+    owner: "{{ nifi_user }}"
+    group: "{{ nifi_group }}"
+    recurse: true
+
+- name: Create NiFi symlink
+  ansible.builtin.file:
+    src: "{{ item.dest_path }}"
+    path: "{{ item.dest_symlink }}"
+    state: "link"
+    owner: "{{ nifi_user }}"
+    group: "{{ nifi_group }}"
+    follow: false
+    force: true

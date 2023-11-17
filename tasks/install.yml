@@ -1,59 +1,28 @@
 ---
-- name: Check if NiFi binary exists
-  ansible.builtin.stat:
-    path: "{{ nifi_config_dirs.binaries }}/nifi-{{ nifi_version }}-bin.zip"
-    get_attributes: false
-    get_checksum: false
-    get_mime: false
-  register: tar_file
+- set_fact:
+    binaries:
+      - name: nifi binaries
+        zip_url: "{{ download_mirror_uri }}/nifi/{{ nifi_version }}/nifi-{{ nifi_version }}-bin.zip"
+        sha256_url: "{{ download_mirror_uri }}/nifi/{{ nifi_version }}/nifi-{{ nifi_version }}-bin.zip.sha256"
+        zip_path: "{{ nifi_config_dirs.binaries }}/nifi-{{ nifi_version }}-bin.zip"
+        dest_path: "{{ nifi_config_dirs.install }}/nifi-{{ nifi_version }}"
+        dest_unarchive: "{{ nifi_config_dirs.install }}/"
+        dest_symlink: "{{ nifi_config_dirs.home }}"
+
+      - name: nifi toolkit binaries
+        zip_url: "{{ download_mirror_uri }}/nifi/{{ nifi_version }}/nifi-toolkit-{{ nifi_version }}-bin.zip"
+        sha256_url: "{{ download_mirror_uri }}/nifi/{{ nifi_version }}/nifi-toolkit-{{ nifi_version }}-bin.zip.sha256"
+        zip_path: "{{ nifi_config_dirs.binaries }}/nifi-toolkit-{{ nifi_version }}-bin.zip"
+        dest_path: "{{ nifi_config_dirs.install }}/nifi-toolkit-{{ nifi_version }}"
+        dest_unarchive: "{{ nifi_config_dirs.install }}"
+        dest_symlink: "{{ nifi_config_dirs.home }}/toolkit"
   tags: [ download ]
 
-- name: Get NiFi binary checksum
-  ansible.builtin.uri:
-    url: "{{ download_mirror_uri }}/nifi/{{ nifi_version }}/nifi-{{ nifi_version }}-bin.zip.sha256"
-    return_content: true
-  register: sha256_sum
+- name: Downloading binaries
+  ansible.builtin.include_tasks: download_item.yml
+  with_items: "{{ binaries }}"
   tags: [ download ]
 
-- name: Check NiFi binary hash
-  stat:
-    path: "{{ nifi_config_dirs.binaries }}/nifi-{{ nifi_version }}-bin.zip"
-    checksum_algorithm: sha256
-  register: hash_check
-  when: tar_file.stat.exists
-  tags: [ download ]
-
-- name: Download NiFi binary
-  ansible.builtin.get_url:
-    url: "{{ download_mirror_uri }}/nifi/{{ nifi_version }}/nifi-{{ nifi_version }}-bin.zip"
-    dest: "{{ nifi_config_dirs.binaries }}/nifi-{{ nifi_version }}-bin.zip"
-    mode: "0644"
-    checksum: "sha256:{{ sha256_sum.content }}"
-  when: not tar_file.stat.exists or (hash_check.stat.checksum != sha256_sum.content | trim)
-  tags: [ download ]
-
-- name: Unpack NiFi binary
-  ansible.builtin.unarchive:
-    remote_src: true
-    src: "{{ nifi_config_dirs.binaries }}/nifi-{{ nifi_version }}-bin.zip"
-    dest: "{{ nifi_config_dirs.install }}/"
-    owner: "{{ nifi_user }}"
-    group: "{{ nifi_group }}"
-    creates: "{{ nifi_config_dirs.install }}/nifi-{{ nifi_version }}"
-
-- name: Fix permissions
-  ansible.builtin.file:
-    path: "{{ nifi_config_dirs.install }}/nifi-{{ nifi_version }}"
-    owner: "{{ nifi_user }}"
-    group: "{{ nifi_group }}"
-    recurse: true
-
-- name: Create NiFi symlink
-  ansible.builtin.file:
-    src: "{{ nifi_config_dirs.install }}/nifi-{{ nifi_version }}"
-    path: "{{ nifi_config_dirs.home }}"
-    state: "link"
-    owner: "{{ nifi_user }}"
-    group: "{{ nifi_group }}"
-    follow: false
-    force: true
+- name: Installing binaries
+  ansible.builtin.include_tasks: install_item.yml
+  with_items: "{{ binaries }}"
