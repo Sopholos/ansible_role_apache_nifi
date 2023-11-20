@@ -54,7 +54,7 @@
       notify: Restart NiFi
 
 - name: Update authorizers.xml
-  when: authorizers_identifiers | length
+  when: (authorizers_identifiers | length) > 0
   block:
     - name: Uncomment block in authorizers.xml
       ansible.builtin.replace:
@@ -77,9 +77,9 @@
     - nifi_properties['nifi.state.management.embedded.zookeeper.start'] is defined
     - nifi_properties['nifi.state.management.embedded.zookeeper.start'] | bool
 
-- name: Set NiFi variables in env.sh
-  ansible.builtin.lineinfile:
-    path: "{{ nifi_config_dirs.home }}/bin/nifi-env.sh"
-    line: "{{ item.key }}={{ item.value }}"
-    regexp: "^{{ item.key }}"
-  with_dict: "{{ nifi_environment }}"
+# - name: Set NiFi variables in env.sh
+#   ansible.builtin.lineinfile:
+#     path: "{{ nifi_config_dirs.home }}/bin/nifi-env.sh"
+#     line: "{{ item.key }}={{ item.value }}"
+#     regexp: "^{{ item.key }}"
+#   with_dict: "{{ nifi_environment }}"

@@ -14,11 +14,15 @@ nifi_config_dirs:
   external_config: /opt/nifi/config_resources
   run: /opt/nifi/releases/current/run
   logs: /opt/nifi/releases/current/logs
+  tmp: /tmp
 
-# Specify any NiFi variable in nifi-env.sh here.
-nifi_environment:
-  "export NIFI_PID_DIR": "{{ nifi_config_dirs.run }}"
-  "export NIFI_LOG_DIR": "{{ nifi_config_dirs.logs }}"
+nifi_keystore:
+  hostnames: localhost
+
+# # Specify any NiFi variable in nifi-env.sh here.
+# nifi_environment:
+#   "export NIFI_PID_DIR": "{{ nifi_config_dirs.run }}"
+#   "export NIFI_LOG_DIR": "{{ nifi_config_dirs.logs }}"
 
 # Specify any property from nifi.properties here.
 nifi_properties:
@@ -66,7 +70,7 @@ authorizers:
   /authorizers/accessPolicyProvider/property[@name="Authorizations File"]: "{{ nifi_config_dirs.external_config }}/authorizations.xml"
 
 # Specify idenfiers of different authorizers
-authorizers_identifiers: {}
+authorizers_identifiers: []
 
 # The following zookeeper properties are only used if
 # nifi_properties.nifi.state.management.embedded.zookeeper.start == true

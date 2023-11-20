@@ -1,0 +1,29 @@
+---
+- name: Check if NiFi binary exists
+  ansible.builtin.stat:
+    path: "{{ item.zip_path }}"
+    get_attributes: false
+    get_checksum: false
+    get_mime: false
+  register: tar_file
+
+- name: Get NiFi binary checksum
+  ansible.builtin.uri:
+    url:  "{{ item.sha256_url }}"
+    return_content: true
+  register: sha256_sum
+
+- name: Check NiFi binary hash
+  stat:
+    path: "{{ item.zip_path }}"
+    checksum_algorithm: sha256
+  register: hash_check
+  when: tar_file.stat.exists
+
+- name: Download NiFi binary
+  ansible.builtin.get_url:
+    url: "{{ item.zip_url }}"
+    dest: "{{ item.zip_path }}"
+    mode: "0644"
+    checksum: "sha256:{{ sha256_sum.content }}"
+  when: not tar_file.stat.exists or (hash_check.stat.checksum != sha256_sum.content | trim)
